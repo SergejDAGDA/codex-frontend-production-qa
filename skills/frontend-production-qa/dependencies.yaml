@@ -1,0 +1,26 @@
+schema_version: 1
+orchestrator:
+  name: frontend-production-qa
+  version: 1.0.0
+
+required:
+  skills:
+    - name: frontend-ui-engineering
+      provider: addyosmani/agent-skills
+    - name: browser-testing-with-devtools
+      provider: addyosmani/agent-skills
+    - name: frontend-visual-qa
+      provider: daymade/claude-code-skills
+  mcp:
+    - name: chrome-devtools
+      provider: ChromeDevTools/chrome-devtools-mcp
+
+recommended:
+  - name: impeccable
+    provider: pbakaus/impeccable
+
+optional_unmanaged:
+  - taste-skill
+  - karpathy-guidelines
+  - context-engineering
+  - maintain-project-memory
