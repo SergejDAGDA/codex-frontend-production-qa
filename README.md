@@ -2,28 +2,94 @@
 
 [Русская версия](README.ru.md)
 
-A reusable Codex skill for production-grade frontend implementation and QA.
+A reusable Codex plugin for production-grade frontend implementation and QA.
 
-It does not replace specialist skills. It orchestrates them and defines when a browser-facing task can be considered complete.
+It does not replace specialist skills. It orchestrates them, defines how deeply a browser-facing change must be verified, and decides when the work has enough evidence to be considered complete.
 
 ## Why this exists
 
 A frontend change can compile and still be wrong:
 
-- a fix for desktop breaks mobile;
+- a desktop fix breaks mobile;
 - one screenshot looks right while another viewport overflows;
 - a shared component regresses on another route;
 - screenshots are generated but never inspected;
-- visual baselines are updated instead of fixing the regression;
-- a plugin is registered but the required skill payload is not actually available.
+- a visual baseline is updated instead of fixing the regression;
+- a plugin appears installed while the expected skill payload is unavailable.
 
 `frontend-production-qa` adds an evidence-based completion workflow around those failure modes.
+
+## Install from GitHub
+
+The GitHub repository is the canonical source. Do not maintain a separate manual copy of this skill when using the plugin distribution.
+
+```powershell
+codex plugin marketplace add SergejDAGDA/codex-frontend-production-qa --ref main
+codex plugin add frontend-production-qa@codex-frontend-production-qa
+```
+
+Start a fresh Codex session after installation.
+
+### Update from GitHub
+
+```powershell
+codex plugin marketplace upgrade codex-frontend-production-qa
+codex plugin add frontend-production-qa@codex-frontend-production-qa
+```
+
+Then start a fresh Codex session.
+
+The second command is intentionally safe to repeat and ensures the installed plugin payload is materialized from the refreshed marketplace snapshot.
+
+### One source of version truth
+
+The public plugin version lives only in:
+
+```text
+.codex-plugin/plugin.json
+```
+
+Do not add separate release versions to `SKILL.md` or dependency manifests.
+
+Every published plugin change must bump the manifest version. This prevents a new Git snapshot from being mistaken for an already-cached payload with the same version.
+
+### Migrating from the old manual install
+
+If `frontend-production-qa` was previously copied to:
+
+```text
+~/.agents/skills/frontend-production-qa/
+```
+
+remove or rename that old manual copy before using the plugin install. Codex does not merge skills with the same `name`; duplicate copies can both appear.
+
+## Bundled Inspo MCP
+
+The plugin bundles the hosted [Inspo](https://github.com/Nutlope/inspo) MCP endpoint:
+
+```text
+https://inspomcp.dev/api/mcp
+```
+
+Inspo provides searchable references from real production websites. The orchestrator uses it selectively for:
+
+- new UI;
+- new components;
+- substantial redesigns;
+- visual-direction exploration;
+- hierarchy/layout exploration;
+- explicit requests for references or inspiration.
+
+It is not the design authority for an existing project. For bug fixes, screenshot matching, responsive regressions, or work that must preserve an established visual language, the project itself remains the source of truth.
+
+No separate `codex mcp add inspo ...` is needed when the plugin is installed.
 
 ## Core workflow
 
 ```text
 project rules
   -> understand/reproduce
+  -> optional design references when warranted
   -> frontend implementation
   -> design-quality layer when relevant
   -> code checks
@@ -95,22 +161,6 @@ Optional existing integrations:
 
 The orchestrator does not install or update optional integrations.
 
-## Install this skill
-
-Install/copy only:
-
-```text
-skills/frontend-production-qa/
-```
-
-For a user-wide Codex install, place it under:
-
-```text
-~/.agents/skills/frontend-production-qa/
-```
-
-Then start a fresh Codex session.
-
 ## Project routing
 
 Do not copy the whole skill into a project's `AGENTS.md`.
@@ -123,9 +173,11 @@ skills/frontend-production-qa/assets/AGENTS.frontend.fragment.md
 
 Project-specific architecture, legal constraints, design decisions and memory remain authoritative in the project itself.
 
-## Toolchain operations
+## Dependency maintenance
 
-From the installed skill directory:
+The plugin itself is updated through the Git-backed marketplace.
+
+The maintenance scripts inside the skill are only for the external specialist toolchain:
 
 ```powershell
 .\scripts\check-frontend-toolchain.ps1
