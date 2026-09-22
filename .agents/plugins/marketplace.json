@@ -1,0 +1,21 @@
+{
+  "name": "codex-frontend-production-qa",
+  "interface": {
+    "displayName": "SergejDAGDA Frontend QA"
+  },
+  "plugins": [
+    {
+      "name": "frontend-production-qa",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/SergejDAGDA/codex-frontend-production-qa.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
