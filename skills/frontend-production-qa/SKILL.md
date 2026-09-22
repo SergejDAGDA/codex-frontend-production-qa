@@ -1,6 +1,5 @@
 ---
 name: frontend-production-qa
-version: 1.0.0
 description: Orchestrates production-grade frontend implementation and verification across engineering, real-browser testing, responsive checks, visual QA, regression closure, and conditional review gates. Use for browser-facing UI work. Do not use for backend-only or non-UI tasks unless rendered browser behavior changes.
 ---
 
@@ -36,6 +35,29 @@ If a required specialist skill is missing:
 3. report the missing dependency and reduced coverage.
 
 If a real browser cannot be used, full frontend verification is blocked.
+
+## Design references with bundled Inspo
+
+The plugin bundles an `inspo` MCP server backed by the hosted Inspo catalogue.
+
+Use it selectively before implementation when the task involves:
+
+- a new page or interface;
+- a new visual component;
+- a substantial redesign;
+- visual-direction exploration;
+- hierarchy or layout exploration;
+- an explicit request for references or inspiration.
+
+Prefer the high-level Inspo recommendation flow first, then inspect specific design systems or components only when useful.
+
+Treat Inspo as reference material, not project authority.
+
+Do not use external inspiration to override an existing approved visual language, exact screenshot target, project design system, or project-specific constraints.
+
+For ordinary bug fixes, responsive regressions, faithful existing-design work, and minor visual corrections, skip Inspo unless it materially helps.
+
+If the bundled Inspo MCP is unavailable, report that limitation when reference research was actually needed. Its absence does not block ordinary frontend regression work.
 
 ## Recommended and optional layers
 
@@ -139,7 +161,17 @@ Before editing:
 
 Do not assume the visible symptom is the root cause.
 
-## Phase 2 — Implement
+## Phase 2 — Establish design direction when warranted
+
+For new UI, redesign, or substantial visual exploration, use the bundled Inspo reference layer before implementation.
+
+Extract transferable patterns such as hierarchy, composition, spacing logic, navigation structure, component archetypes, and responsive strategy.
+
+Do not copy branding, proprietary content, or another site's visual identity.
+
+If the task is an existing-design bug fix or regression, preserve the existing project instead of inventing a new direction.
+
+## Phase 3 — Implement
 
 Use `frontend-ui-engineering`.
 
@@ -155,7 +187,7 @@ Avoid:
 - unrelated cleanup;
 - framework migration without approval.
 
-## Phase 3 — Code-level checks
+## Phase 4 — Code-level checks
 
 Run applicable existing checks:
 
@@ -169,7 +201,7 @@ Use TDD when the changed behavior can reasonably be protected by a regression te
 
 A passing build is not evidence that rendered UI is correct.
 
-## Phase 4 — Real browser
+## Phase 5 — Real browser
 
 Use `browser-testing-with-devtools`.
 
@@ -186,7 +218,7 @@ Inspect as applicable:
 
 New relevant console errors caused by the change are blockers.
 
-## Phase 5 — Responsive verification
+## Phase 6 — Responsive verification
 
 Read `references/verification-matrix.md`.
 
@@ -198,7 +230,7 @@ Class C uses targeted verification.
 
 If breakpoint `B` changed or is suspected, also test `B-1`, `B`, and `B+1`.
 
-## Phase 6 — Rendered visual QA
+## Phase 7 — Rendered visual QA
 
 Use `frontend-visual-qa`.
 
