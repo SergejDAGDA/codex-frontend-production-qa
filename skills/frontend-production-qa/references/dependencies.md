@@ -1,6 +1,26 @@
 # Dependencies
 
-## Required
+## Plugin-bundled
+
+### Inspo MCP
+
+The plugin bundles Inspo as a remote read-only design-reference MCP server.
+
+```text
+https://inspomcp.dev/api/mcp
+```
+
+Upstream:
+
+https://github.com/Nutlope/inspo
+
+No separate user-level MCP registration is required when `frontend-production-qa` is installed as a plugin.
+
+Use Inspo for new UI, new components, redesigns, visual-direction exploration, or explicit requests for reference material.
+
+Do not use inspiration results as authority over an existing project's approved visual language.
+
+## Required external specialist stack
 
 ### addyosmani/agent-skills
 
