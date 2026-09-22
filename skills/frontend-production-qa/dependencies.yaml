@@ -1,7 +1,7 @@
 schema_version: 1
+
 orchestrator:
   name: frontend-production-qa
-  version: 1.0.0
 
 required:
   skills:
@@ -14,6 +14,14 @@ required:
   mcp:
     - name: chrome-devtools
       provider: ChromeDevTools/chrome-devtools-mcp
+
+bundled:
+  mcp:
+    - name: inspo
+      provider: Nutlope/inspo
+      transport: streamable-http
+      url: https://inspomcp.dev/api/mcp
+      required: false
 
 recommended:
   - name: impeccable
