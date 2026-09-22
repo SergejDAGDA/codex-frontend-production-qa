@@ -2,28 +2,94 @@
 
 [English version](README.md)
 
-Переиспользуемый навык для Codex, который оркестрирует production frontend-разработку и QA.
+Переиспользуемый Codex plugin для production frontend-разработки и QA.
 
-Он не заменяет специализированные навыки. Его задача — выбрать правильную глубину проверки, подключить нужные инструменты и определить, когда browser-facing задача действительно завершена.
+Он не заменяет специализированные навыки. Его задача — оркестрировать их, выбирать глубину проверки browser-facing изменений и определять, когда задача действительно подтверждена достаточными доказательствами.
 
 ## Зачем он нужен
 
 Frontend может успешно собираться и при этом оставаться сломанным:
 
 - исправление desktop ломает mobile;
-- один screenshot выглядит правильно, а другой viewport уже переполнен;
+- один screenshot выглядит правильно, а другой viewport переполнен;
 - shared component ломается на другой странице;
-- screenshots генерируются, но фактически не просматриваются;
-- baseline обновляется вместо исправления regression;
-- plugin зарегистрирован, но нужный skill payload реально отсутствует.
+- screenshots создаются, но не просматриваются;
+- visual baseline обновляется вместо исправления regression;
+- plugin выглядит установленным, хотя нужный skill payload фактически отсутствует.
 
-`frontend-production-qa` добавляет вокруг таких случаев обязательный evidence-based workflow.
+`frontend-production-qa` добавляет вокруг этих случаев обязательный evidence-based workflow.
+
+## Установка напрямую из GitHub
+
+GitHub-репозиторий теперь является каноническим источником. При plugin-установке не нужно поддерживать отдельную ручную копию skill.
+
+```powershell
+codex plugin marketplace add SergejDAGDA/codex-frontend-production-qa --ref main
+codex plugin add frontend-production-qa@codex-frontend-production-qa
+```
+
+После установки запустите новую сессию Codex.
+
+### Обновление из GitHub
+
+```powershell
+codex plugin marketplace upgrade codex-frontend-production-qa
+codex plugin add frontend-production-qa@codex-frontend-production-qa
+```
+
+После этого также нужно открыть новую сессию Codex.
+
+Вторая команда намеренно может выполняться повторно: она гарантирует материализацию plugin payload из обновлённого snapshot marketplace.
+
+### Единственный источник версии
+
+Публичная версия plugin хранится только здесь:
+
+```text
+.codex-plugin/plugin.json
+```
+
+В `SKILL.md` и dependency manifests отдельную release version больше добавлять не нужно.
+
+Каждое опубликованное изменение plugin должно увеличивать version в manifest. Иначе новый Git snapshot может быть принят за уже закэшированный payload с той же версией.
+
+### Переход со старой ручной установки
+
+Если `frontend-production-qa` раньше копировался сюда:
+
+```text
+~/.agents/skills/frontend-production-qa/
+```
+
+перед plugin-установкой старую копию нужно удалить или переименовать. Codex не объединяет skills с одинаковым `name`, поэтому две копии могут одновременно появляться в selector.
+
+## Встроенный Inspo MCP
+
+Plugin включает hosted MCP проекта [Inspo](https://github.com/Nutlope/inspo):
+
+```text
+https://inspomcp.dev/api/mcp
+```
+
+Inspo даёт агенту поиск по реальным production-сайтам и их design patterns. Оркестратор использует его выборочно для:
+
+- нового UI;
+- новых компонентов;
+- существенного redesign;
+- поиска визуального направления;
+- исследования hierarchy/layout;
+- явного запроса на references или inspiration.
+
+Inspo не становится источником дизайна существующего проекта. При bugfix, screenshot matching, responsive regression или необходимости сохранить уже утверждённый visual language главным источником остаётся сам проект.
+
+Отдельная команда `codex mcp add inspo ...` при plugin-установке не нужна.
 
 ## Основной workflow
 
 ```text
 правила проекта
   -> анализ и воспроизведение
+  -> optional design references, если действительно нужны
   -> frontend implementation
   -> design-quality слой, если нужен
   -> code checks
@@ -40,8 +106,8 @@ Frontend может успешно собираться и при этом ос�
 | Класс | Типичное изменение | Проверка |
 |---|---|---|
 | A | layout, responsive, перенос текста, shared UI, navigation, подготовка релиза | реальный браузер + полная матрица 8 viewport + visual QA + regression closure |
-| B | небольшая визуальная правка без реалистичного влияния на геометрию | реальный браузер + сокращённая матрица 3 viewport + визуальная проверка |
-| C | невизуальное browser-facing изменение | точечная browser-проверка |
+| B | небольшая визуальная правка без реалистичного влияния на геометрию | реальный браузер + сокращённая матрица 3 viewport + visual inspection |
+| C | невизуальное browser-facing изменение | точечная browser verification |
 | D | backend/non-UI | frontend workflow не запускается, если rendered browser behavior не меняется |
 
 Полная матрица:
@@ -93,23 +159,7 @@ Chrome DevTools MCP — из [ChromeDevTools/chrome-devtools-mcp](https://github
 - `context-engineering`
 - `maintain-project-memory`
 
-Этот репозиторий не устанавливает и не обновляет optional integrations.
-
-## Установка навыка
-
-Нужна только папка:
-
-```text
-skills/frontend-production-qa/
-```
-
-Для глобальной установки Codex:
-
-```text
-~/.agents/skills/frontend-production-qa/
-```
-
-После установки нужно запустить новую сессию Codex.
+Этот repository не устанавливает и не обновляет optional integrations.
 
 ## Подключение к проекту
 
@@ -123,9 +173,11 @@ skills/frontend-production-qa/assets/AGENTS.frontend.fragment.md
 
 Архитектура проекта, юридические ограничения, design decisions и project memory остаются главным источником правил.
 
-## Обслуживание toolchain
+## Обслуживание зависимостей
 
-Из папки установленного навыка:
+Сам plugin обновляется через Git-backed marketplace.
+
+Скрипты внутри skill обслуживают только внешний specialist toolchain:
 
 ```powershell
 .\scripts\check-frontend-toolchain.ps1
