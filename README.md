@@ -46,7 +46,7 @@ The second command is intentionally safe to repeat and ensures the installed plu
 The public plugin version lives only in:
 
 ```text
-.codex-plugin/plugin.json
+plugin.json
 ```
 
 Do not add separate release versions to `SKILL.md` or dependency manifests.

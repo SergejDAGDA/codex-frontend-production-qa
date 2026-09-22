@@ -16,7 +16,7 @@ Start a fresh Codex session afterward.
 The release version is declared only in:
 
 ```text
-.codex-plugin/plugin.json
+plugin.json
 ```
 
 Every published plugin change must bump that version.

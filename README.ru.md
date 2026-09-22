@@ -46,7 +46,7 @@ codex plugin add frontend-production-qa@codex-frontend-production-qa
 Публичная версия plugin хранится только здесь:
 
 ```text
-.codex-plugin/plugin.json
+plugin.json
 ```
 
 В `SKILL.md` и dependency manifests отдельную release version больше добавлять не нужно.
