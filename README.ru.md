@@ -144,13 +144,18 @@ Workflow ожидает:
 
 Первые два навыка берутся из [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
 
-`frontend-visual-qa` — из [daymade/claude-code-skills](https://github.com/daymade/claude-code-skills).
+`frontend-visual-qa` включён непосредственно в этот repository. Его исходный upstream — [daymade/claude-code-skills](https://github.com/daymade/claude-code-skills), но используемой версией является поддерживаемая здесь Codex-адаптация.
 
 Chrome DevTools MCP — из [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp).
 
 Рекомендуемый design-quality слой:
 
 - [Impeccable](https://github.com/pbakaus/impeccable)
+
+Связанные необязательные skills:
+
+- `ui-designer`
+- `qa-expert`
 
 Опционально можно использовать уже установленные:
 

@@ -144,13 +144,18 @@ The workflow expects:
 
 The first two come from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
 
-`frontend-visual-qa` comes from [daymade/claude-code-skills](https://github.com/daymade/claude-code-skills).
+`frontend-visual-qa` is bundled in this repository. Its original upstream source is [daymade/claude-code-skills](https://github.com/daymade/claude-code-skills), but the maintained Codex-adapted copy here is the version used by this plugin.
 
 Chrome DevTools MCP comes from [ChromeDevTools/chrome-devtools-mcp](https://github.com/ChromeDevTools/chrome-devtools-mcp).
 
 Recommended design-quality layer:
 
 - [Impeccable](https://github.com/pbakaus/impeccable)
+
+Related optional skills:
+
+- `ui-designer`
+- `qa-expert`
 
 Optional existing integrations:
 
