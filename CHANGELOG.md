@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 - 2026-09-25
+
+Bundled visual QA consistency release.
+
+- Bundled the maintained Codex-adapted `frontend-visual-qa` skill.
+- Removed the floating upstream copy as a runtime dependency.
+- Documented `ui-designer` and `qa-expert` as optional related skills.
+- Kept external `agent-skills` and Chrome DevTools MCP dependencies explicit.
+
 ## 1.1.1 - 2026-09-22
 
 Packaging correction release.

@@ -40,19 +40,21 @@ Upstream:
 
 https://github.com/addyosmani/agent-skills
 
-### frontend-visual-qa
+### Bundled frontend-visual-qa
 
-Expected upstream:
+The plugin bundles the maintained Codex-adapted copy in:
+
+```text
+skills/frontend-visual-qa/
+```
+
+The original upstream source is retained only as a comparison reference:
 
 https://github.com/daymade/claude-code-skills
 
-Expected source directory:
+Do not silently replace the bundled copy with the upstream Claude-oriented version. Changes should be reviewed and committed to this repository so the orchestrator and visual QA rules remain version-consistent.
 
-```text
-frontend-visual-qa/
-```
-
-Expected user install directory:
+Legacy user install directory:
 
 ```text
 ~/.agents/skills/frontend-visual-qa/
@@ -73,6 +75,15 @@ https://github.com/ChromeDevTools/chrome-devtools-mcp
 Registration alone proves configuration, not successful MCP process startup or Chrome connectivity. Those are runtime checks during actual frontend work.
 
 ## Recommended
+
+### Related skills
+
+The bundled `frontend-visual-qa` documentation may refer to these optional adjacent skills:
+
+- `ui-designer` for extracting design systems from reference images;
+- `qa-expert` for broader QA strategy and test-program setup.
+
+They are not required to run the production frontend workflow. When installed, use the Codex-compatible copies from `daymade/claude-code-skills` or an explicitly maintained fork.
 
 ### Impeccable
 

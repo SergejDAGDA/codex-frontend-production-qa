@@ -9,13 +9,14 @@ required:
       provider: addyosmani/agent-skills
     - name: browser-testing-with-devtools
       provider: addyosmani/agent-skills
-    - name: frontend-visual-qa
-      provider: daymade/claude-code-skills
   mcp:
     - name: chrome-devtools
       provider: ChromeDevTools/chrome-devtools-mcp
 
 bundled:
+  skills:
+    - name: frontend-visual-qa
+      path: ./skills/frontend-visual-qa
   mcp:
     - name: inspo
       provider: Nutlope/inspo
@@ -26,6 +27,10 @@ bundled:
 recommended:
   - name: impeccable
     provider: pbakaus/impeccable
+  - name: ui-designer
+    provider: daymade/claude-code-skills
+  - name: qa-expert
+    provider: daymade/claude-code-skills
 
 optional_unmanaged:
   - taste-skill

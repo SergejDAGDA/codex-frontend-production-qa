@@ -28,6 +28,10 @@ Expected capabilities:
 - `frontend-visual-qa`
 - Chrome DevTools MCP
 
+`frontend-visual-qa` is bundled with this plugin. Use the bundled copy as the
+version-consistent visual QA layer; do not substitute a separately installed
+upstream copy without reviewing the diff first.
+
 If a required specialist skill is missing:
 
 1. do not pretend that phase ran;
