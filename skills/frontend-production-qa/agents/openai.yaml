@@ -1,4 +1,4 @@
 interface:
   display_name: "Frontend Production QA"
-  short_description: "Production frontend orchestration with real-browser QA, responsive verification and regression closure"
-  default_prompt: "Use $frontend-production-qa to classify this browser-facing change, preserve project rules, use the available specialist stack, and complete the applicable browser, responsive, visual QA and regression-closure gates before reporting completion."
+  short_description: "Production frontend orchestration with real-browser QA, responsive verification, conditional motion guidance and regression closure"
+  default_prompt: "Use $frontend-production-qa to classify this browser-facing change, preserve project rules, invoke the conditional Motion specialist when animation or gesture work materially warrants it, and complete the applicable browser, responsive, motion, visual QA and regression-closure gates before reporting completion."
