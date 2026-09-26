@@ -25,6 +25,19 @@ bundled:
       required: false
 
 recommended:
+  - name: motion
+    provider: motiondivision/ai-kit
+    conditional: true
+    install: npx motion-ai@latest
+    triggers:
+      - animation
+      - transitions
+      - gestures
+      - drag-reorder
+      - layout-motion
+      - spring-motion
+      - scroll-linked-motion
+      - motion-performance
   - name: impeccable
     provider: pbakaus/impeccable
   - name: ui-designer
