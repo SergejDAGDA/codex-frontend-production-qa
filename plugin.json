@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "frontend-production-qa",
-  "version": "1.2.0",
-  "description": "Production frontend orchestration with responsive verification, real-browser QA, regression closure, and optional design-reference search.",
+  "version": "1.3.0",
+  "description": "Production frontend orchestration with responsive verification, real-browser QA, regression closure, conditional motion guidance, and optional design-reference search.",
   "author": {
     "name": "Sergej DAGDA",
     "url": "https://github.com/SergejDAGDA"
@@ -15,14 +15,16 @@
     "qa",
     "responsive",
     "visual-regression",
+    "motion",
+    "animation",
     "codex"
   ],
   "skills": "./skills/",
   "mcpServers": "./mcp.json",
   "interface": {
     "displayName": "Frontend Production QA",
-    "shortDescription": "Production frontend workflow with real-browser and responsive QA",
-    "longDescription": "Orchestrates frontend implementation, responsive verification, rendered visual QA, regression closure, shared-component checks, and conditional review gates. Includes optional Inspo MCP references for new or substantially redesigned interfaces.",
+    "shortDescription": "Production frontend workflow with real-browser, responsive and motion-aware QA",
+    "longDescription": "Orchestrates frontend implementation, conditional Motion specialization, responsive verification, rendered visual QA, regression closure, shared-component checks, and conditional review gates. Includes optional Inspo MCP references for new or substantially redesigned interfaces.",
     "developerName": "Sergej DAGDA",
     "category": "Developer Tools",
     "capabilities": [
@@ -33,7 +35,7 @@
     "websiteURL": "https://github.com/SergejDAGDA/codex-frontend-production-qa",
     "defaultPrompt": [
       "Fix this frontend issue and verify it across affected viewports.",
-      "Build this UI and close responsive and visual regressions.",
+      "Build this UI and close responsive, motion and visual regressions.",
       "Review this browser UI before release."
     ]
   }
