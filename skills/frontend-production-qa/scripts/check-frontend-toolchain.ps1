@@ -42,40 +42,53 @@ function Get-SkillCandidates {
     return @($paths)
 }
 
-function Test-SkillPayload {
+function Test-SkillFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$ExpectedName
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    try {
+        $content = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
+        if ($content.Length -lt 16) { return $null }
+        if (-not $content.StartsWith("---")) { return $null }
+
+        $match = [regex]::Match(
+            $content,
+            "(?ms)\A---\s*.*?^\s*name\s*:\s*['`"]?(?<name>[^'`"\r\n#]+)"
+        )
+
+        if (-not $match.Success) { return $null }
+        if ($match.Groups["name"].Value.Trim() -ne $ExpectedName) { return $null }
+
+        return [PSCustomObject]@{
+            Path = $Path
+            Sha256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+        }
+    }
+    catch {
+        return $null
+    }
+}
+
+function Find-ValidatedSkill {
     param([Parameter(Mandatory = $true)][string]$Name)
 
-    $candidates = @(Get-SkillCandidates -Name $Name)
-
-    foreach ($path in $candidates) {
-        try {
-            $content = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
-            if ($content.Length -lt 16) { continue }
-            if (-not $content.StartsWith("---")) { continue }
-
-            $match = [regex]::Match(
-                $content,
-                "(?ms)\A---\s*.*?^\s*name\s*:\s*['`"]?(?<name>[^'`"\r\n#]+)"
-            )
-
-            if (-not $match.Success) { continue }
-
-            $declared = $match.Groups["name"].Value.Trim()
-            if ($declared -ne $Name) { continue }
-
-            $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+    foreach ($path in @(Get-SkillCandidates -Name $Name)) {
+        $result = Test-SkillFile -Path $path -ExpectedName $Name
+        if ($result) {
             Write-Host "[VALID] $Name"
-            Write-Host "        path: $path"
-            Write-Host "        sha256: $hash"
-            return $true
-        }
-        catch {
-            Write-Host "[WARN] Could not validate $path"
+            Write-Host "        path: $($result.Path)"
+            Write-Host "        sha256: $($result.Sha256)"
+            return $result
         }
     }
 
-    Write-Host "[MISSING] no valid $Name payload found"
-    return $false
+    return $null
 }
 
 Write-Host "Frontend Production QA - local readiness"
@@ -105,17 +118,48 @@ else {
 }
 
 Write-Host ""
-Write-Host "Required specialist skills"
-Write-Host "--------------------------"
+Write-Host "Required external specialist skills"
+Write-Host "-----------------------------------"
 
 foreach ($skill in @(
     "frontend-ui-engineering",
-    "browser-testing-with-devtools",
-    "frontend-visual-qa"
+    "browser-testing-with-devtools"
 )) {
-    if (-not (Test-SkillPayload -Name $skill)) {
+    if (-not (Find-ValidatedSkill -Name $skill)) {
+        Write-Host "[MISSING] no valid $skill payload found"
         $runtimeReady = $false
     }
+}
+
+Write-Host ""
+Write-Host "Bundled specialist skill"
+Write-Host "------------------------"
+
+$orchestratorRoot = Split-Path $PSScriptRoot -Parent
+$pluginSkillsRoot = Split-Path $orchestratorRoot -Parent
+$bundledVisualQaPath = Join-Path $pluginSkillsRoot "frontend-visual-qa\SKILL.md"
+$bundledVisualQa = Test-SkillFile -Path $bundledVisualQaPath -ExpectedName "frontend-visual-qa"
+
+if ($bundledVisualQa) {
+    Write-Host "[VALID] bundled frontend-visual-qa"
+    Write-Host "        path: $($bundledVisualQa.Path)"
+    Write-Host "        sha256: $($bundledVisualQa.Sha256)"
+}
+else {
+    Write-Host "[MISSING] bundled frontend-visual-qa is missing or invalid"
+    Write-Host "          Reinstall/update frontend-production-qa; do not substitute a floating Daymade copy."
+    $runtimeReady = $false
+}
+
+Write-Host ""
+Write-Host "Recommended conditional specialists"
+Write-Host "-----------------------------------"
+
+$motion = Find-ValidatedSkill -Name "motion"
+if (-not $motion) {
+    Write-Host "[OPTIONAL MISSING] motion"
+    Write-Host "                   Install/update with: npx motion-ai@latest"
+    Write-Host "                   Core readiness is unaffected."
 }
 
 Write-Host ""
@@ -147,6 +191,7 @@ Write-Host "Readiness summary"
 Write-Host "-----------------"
 Write-Host ("FRONTEND TOOLCHAIN FILES: " + $(if ($runtimeReady) { "READY" } else { "NOT READY" }))
 Write-Host ("BROWSER MCP CONFIG: " + $(if ($mcpRegistered) { "REGISTERED" } else { "NOT READY" }))
+Write-Host "MOTION SPECIALIST: OPTIONAL / CONDITIONAL"
 Write-Host "CURRENT CODEX SESSION LOAD: NOT VERIFIED BY THIS SCRIPT"
 Write-Host "BROWSER PROCESS/CONNECTION: VERIFY DURING THE FRONTEND TASK"
 Write-Host ("TOOLCHAIN MAINTENANCE: " + $(if ($maintenanceReady) { "READY" } else { "NOT READY" }))
