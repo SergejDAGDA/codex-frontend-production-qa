@@ -17,51 +17,32 @@ function Get-RemoteHead {
 
 Require-Command "git"
 
-Write-Host "Frontend Production QA - update check"
-Write-Host "===================================="
-Write-Host "This operation may access upstream repositories but does not replace managed skills."
+Write-Host "Frontend Production QA - external dependency update check"
+Write-Host "========================================================"
+Write-Host "This operation may access upstream repositories but does not replace installed skills."
 Write-Host ""
 
 $addy = Get-RemoteHead "https://github.com/addyosmani/agent-skills.git"
-$daymade = Get-RemoteHead "https://github.com/daymade/claude-code-skills.git"
 
 Write-Host "addyosmani/agent-skills"
 Write-Host "  upstream HEAD: $addy"
 Write-Host "  refresh command: codex plugin marketplace upgrade agent-skills"
 Write-Host ""
 
-$visualDir = Join-Path $HOME ".agents\skills\frontend-visual-qa"
-$metadata = Join-Path $visualDir ".frontend-production-qa-source.json"
-$installed = $null
-
-if (Test-Path -LiteralPath $metadata) {
-    try {
-        $installed = (Get-Content -LiteralPath $metadata -Raw | ConvertFrom-Json).upstream_commit
-    }
-    catch {
-        Write-Host "[WARN] installed frontend-visual-qa metadata could not be parsed"
-    }
-}
-
-Write-Host "daymade/claude-code-skills"
-Write-Host "  installed recorded commit: $installed"
-Write-Host "  upstream HEAD:             $daymade"
-
-if ($installed -and $daymade) {
-    if ($installed -eq $daymade) {
-        Write-Host "  status: CURRENT"
-    }
-    else {
-        Write-Host "  status: UPDATE AVAILABLE"
-    }
-}
-else {
-    Write-Host "  status: UNKNOWN"
-}
-
+Write-Host "bundled frontend-visual-qa"
+Write-Host "  status: managed only by the frontend-production-qa plugin repository"
+Write-Host "  upstream daymade/claude-code-skills is comparison-only and is not a runtime update source"
 Write-Host ""
+
+Write-Host "Motion AI Kit"
+Write-Host "  status: recommended conditional specialist, independently maintained"
+Write-Host "  install/update: npx motion-ai@latest"
+Write-Host "  note: this script does not run the interactive Motion installer"
+Write-Host ""
+
 Write-Host "Impeccable"
 Write-Host "  explicit check: npx impeccable check"
 Write-Host "  note: npx may populate its package cache"
 Write-Host ""
-Write-Host "No installed managed dependency was replaced."
+
+Write-Host "No installed dependency was replaced."
