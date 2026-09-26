@@ -1,6 +1,6 @@
 ---
 name: frontend-production-qa
-description: Orchestrates production-grade frontend implementation and verification across engineering, real-browser testing, responsive checks, visual QA, regression closure, and conditional review gates. Use for browser-facing UI work. Do not use for backend-only or non-UI tasks unless rendered browser behavior changes.
+description: Orchestrates production-grade frontend implementation and verification across engineering, real-browser testing, responsive checks, conditional motion guidance, visual QA, regression closure, and conditional review gates. Use for browser-facing UI work. Do not use for backend-only or non-UI tasks unless rendered browser behavior changes.
 ---
 
 # Frontend Production QA
@@ -28,9 +28,7 @@ Expected capabilities:
 - `frontend-visual-qa`
 - Chrome DevTools MCP
 
-`frontend-visual-qa` is bundled with this plugin. Use the bundled copy as the
-version-consistent visual QA layer; do not substitute a separately installed
-upstream copy without reviewing the diff first.
+`frontend-visual-qa` is bundled with this plugin. Use the bundled copy as the version-consistent visual QA layer; do not substitute a separately installed upstream copy without reviewing the diff first.
 
 If a required specialist skill is missing:
 
@@ -65,6 +63,10 @@ If the bundled Inspo MCP is unavailable, report that limitation when reference r
 
 ## Recommended and optional layers
 
+Use the official Motion AI Kit `/motion` skill as a recommended conditional specialist when animation, transitions, gestures, layout motion, drag/reorder, springs, scroll-linked effects, or motion performance are material to the task.
+
+Read `references/motion-specialist.md` before using it. The presence of the specialist does not authorize adding the Motion runtime package, changing animation libraries, or replacing simple CSS with JavaScript animation.
+
 Use Impeccable for meaningful design/layout/typography/hierarchy/responsive critique or polish when it is installed and relevant.
 
 Optional locally available integrations may include:
@@ -86,6 +88,7 @@ Normal frontend work must not silently:
 - update dependencies;
 - replace third-party skills;
 - initialize Impeccable;
+- run the Motion AI Kit installer;
 - approve hooks.
 
 Bootstrap and updates are explicit maintenance operations only.
@@ -106,6 +109,7 @@ Examples:
 - header/footer/navigation;
 - modal/drawer geometry;
 - responsive media;
+- layout-affecting animation, shared layout, drag/reorder, or scroll-linked geometry;
 - release preparation.
 
 Required:
@@ -123,7 +127,8 @@ Examples:
 
 - color-only correction;
 - border color;
-- icon color.
+- icon color;
+- color/opacity-only transition with no plausible geometry impact.
 
 Required:
 
@@ -175,7 +180,21 @@ Do not copy branding, proprietary content, or another site's visual identity.
 
 If the task is an existing-design bug fix or regression, preserve the existing project instead of inventing a new direction.
 
-## Phase 3 — Implement
+## Phase 3 — Motion gate when warranted
+
+Read `references/motion-specialist.md` when the task creates or materially changes animation, transitions, gestures, drag/reorder, layout motion, springs, scroll-linked effects, or animation performance.
+
+If the `/motion` specialist is available, use it for implementation guidance.
+
+Prefer CSS when CSS is sufficient. Do not add the Motion runtime merely because the specialist exists.
+
+Preserve the project's existing animation stack and pinned versions. Do not replace an established animation library without explicit approval.
+
+For material motion changes, plan verification for normal motion, the settled end state, interruption/repetition when relevant, and `prefers-reduced-motion`.
+
+If `/motion` is unavailable, apply the CSS-first, accessibility, and verification rules in `references/motion-specialist.md` directly and report reduced specialist coverage only when motion was material to the task.
+
+## Phase 4 — Implement
 
 Use `frontend-ui-engineering`.
 
@@ -188,10 +207,12 @@ Avoid:
 - unnecessary absolute positioning;
 - one-screenshot breakpoint hacks;
 - duplicate responsive exceptions;
+- decorative motion unrelated to the requested task;
+- introducing animation runtime dependencies for effects that CSS handles cleanly;
 - unrelated cleanup;
 - framework migration without approval.
 
-## Phase 4 — Code-level checks
+## Phase 5 — Code-level checks
 
 Run applicable existing checks:
 
@@ -205,7 +226,7 @@ Use TDD when the changed behavior can reasonably be protected by a regression te
 
 A passing build is not evidence that rendered UI is correct.
 
-## Phase 5 — Real browser
+## Phase 6 — Real browser
 
 Use `browser-testing-with-devtools`.
 
@@ -213,16 +234,18 @@ Inspect as applicable:
 
 - rendered DOM;
 - geometry/layout;
-- console;
-- failed requests;
+- browser console;
+- failed network requests;
 - interactions;
 - accessibility structure;
 - screenshots;
-- viewport behavior.
+- viewport behavior;
+- transient and settled motion states when relevant;
+- reduced-motion behavior when relevant.
 
 New relevant console errors caused by the change are blockers.
 
-## Phase 6 — Responsive verification
+## Phase 7 — Responsive verification
 
 Read `references/verification-matrix.md`.
 
@@ -234,9 +257,11 @@ Class C uses targeted verification.
 
 If breakpoint `B` changed or is suspected, also test `B-1`, `B`, and `B+1`.
 
-## Phase 7 — Rendered visual QA
+Layout-affecting motion belongs to Class A unless there is strong evidence that it cannot affect geometry or responsive behavior.
 
-Use `frontend-visual-qa`.
+## Phase 8 — Rendered visual QA
+
+Use the bundled `frontend-visual-qa`.
 
 Screenshots must be opened and visually inspected. Generating them is not enough.
 
@@ -245,6 +270,8 @@ Inspect the affected region and surrounding layout context.
 For long pages, inspect below the fold.
 
 For shared components, inspect representative consuming routes.
+
+For motion changes, do not rely only on a final screenshot when the defect can exist during transition, interruption, or reduced-motion states.
 
 Do not update visual baselines merely to silence a regression.
 
@@ -263,6 +290,8 @@ Any later change to:
 - visibility;
 - breakpoint logic;
 - component structure;
+- animation/transition rules;
+- motion layout or gesture state;
 - shared frontend styles
 
 invalidates previous visual verification for the affected surface.
@@ -284,9 +313,10 @@ Examples:
 - typography;
 - CSS variables/design tokens;
 - forms/buttons/cards/modals;
+- shared motion primitives;
 - global media rules.
 
-Verify representative consumers across routes.
+Verify representative consumers.
 
 ## Conditional final gates
 
@@ -294,8 +324,9 @@ Use additional specialist skills when applicable:
 
 - `code-review-and-quality` for substantial/shared/release work;
 - `security-and-hardening` for auth, uploads, permissions, tokens, sensitive input/data;
-- `performance-optimization` when loading/rendering/assets/JS cost/Core Web Vitals may change;
-- `shipping-and-launch` for production release/deployment preparation.
+- `performance-optimization` when loading/rendering/assets/JavaScript cost/Core Web Vitals may be affected;
+- Motion performance tooling, including MotionScore when available, as supporting evidence for substantial animation work;
+- `shipping-and-launch` for production publication or deployment preparation.
 
 Do not force irrelevant gates into trivial work.
 
@@ -311,6 +342,7 @@ Before reporting completion, state:
 - browser checks run;
 - console status;
 - visual QA status;
+- motion/transient/reduced-motion states checked when applicable;
 - shared consumers checked;
 - anything blocked or unverified.
 
@@ -319,5 +351,6 @@ Do not say `done`, `fixed`, `ready`, or equivalent when required verification is
 Read:
 
 - `references/verification-matrix.md`
+- `references/motion-specialist.md`
 - `references/dependencies.md`
 - `references/toolchain-maintenance.md`
