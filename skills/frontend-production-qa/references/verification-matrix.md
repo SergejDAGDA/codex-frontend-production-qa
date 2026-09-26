@@ -2,7 +2,7 @@
 
 ## Class A — full matrix
 
-Use for layout, responsive, typography wrapping, sizing, visibility, navigation, shared UI and release preparation.
+Use for layout, responsive, typography wrapping, sizing, visibility, navigation, shared UI, layout-affecting motion, and release preparation.
 
 | Surface | Viewport |
 |---|---:|
@@ -22,6 +22,8 @@ Use only when the visual change has no plausible geometry/wrapping/sizing/visibi
 - 390x844
 - 768x1024
 - 1440x900
+
+A color/opacity-only transition may remain Class B when it cannot affect geometry or interaction layout.
 
 If uncertain, use Class A.
 
@@ -54,8 +56,24 @@ Check for:
 
 For long pages inspect top, representative middle content, below-the-fold behavior, and terminal/footer sections.
 
+## Motion and transient-state verification
+
+When animation, transitions, gestures, drag/reorder, springs, or scroll-linked effects materially change, inspect the applicable states rather than only a settled screenshot:
+
+- initial state;
+- active/transient state when observable;
+- settled state after animation completion;
+- repeated/reversed/interrupted state when relevant;
+- `prefers-reduced-motion` state for nontrivial motion.
+
+Check that animation does not leave stale transforms, clipping, overflow, inaccessible controls, wrong final geometry, or broken scroll ownership.
+
+Reduced motion must preserve meaning and task completion. For gesture-heavy behavior, verify the appropriate keyboard or non-gesture path when accessibility or product requirements call for it.
+
+For scroll-linked motion, sample representative scroll positions at relevant responsive widths.
+
 ## Shared components
 
 If a shared component changes, test representative routes that use it in different contexts.
 
-Global header, footer, navigation, typography, containers and design tokens require cross-page checks.
+Global header, footer, navigation, typography, containers, design tokens, and shared motion primitives require cross-page checks.
