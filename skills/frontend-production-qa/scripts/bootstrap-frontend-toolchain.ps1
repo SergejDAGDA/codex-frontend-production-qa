@@ -31,15 +31,11 @@ function Test-SkillName {
 }
 
 Require-Command "codex"
-Require-Command "git"
 Require-Command "npx"
 
-Write-Host "Frontend Production QA - bootstrap"
-Write-Host "=================================="
+Write-Host "Frontend Production QA - external toolchain bootstrap"
+Write-Host "===================================================="
 Write-Host ""
-
-$skillsRoot = Join-Path $HOME ".agents\skills"
-New-Item -ItemType Directory -Force -Path $skillsRoot | Out-Null
 
 Write-Host "1. addyosmani/agent-skills"
 
@@ -60,55 +56,18 @@ else {
 }
 
 Write-Host ""
-Write-Host "2. frontend-visual-qa"
+Write-Host "2. bundled frontend-visual-qa"
 
-$target = Join-Path $skillsRoot "frontend-visual-qa"
-$targetSkill = Join-Path $target "SKILL.md"
+$orchestratorRoot = Split-Path $PSScriptRoot -Parent
+$pluginSkillsRoot = Split-Path $orchestratorRoot -Parent
+$bundledVisualQa = Join-Path $pluginSkillsRoot "frontend-visual-qa\SKILL.md"
 
-if (-not (Test-SkillName -Path $targetSkill -ExpectedName "frontend-visual-qa")) {
-    $temp = Join-Path ([IO.Path]::GetTempPath()) ("fpqa-bootstrap-" + [guid]::NewGuid().ToString("N"))
-    $repo = Join-Path $temp "daymade"
-
-    try {
-        New-Item -ItemType Directory -Force -Path $temp | Out-Null
-        & git clone --depth 1 https://github.com/daymade/claude-code-skills.git $repo
-        if ($LASTEXITCODE -ne 0) { throw "Unable to clone daymade/claude-code-skills." }
-
-        $source = Join-Path $repo "frontend-visual-qa"
-        $sourceSkill = Join-Path $source "SKILL.md"
-
-        if (-not (Test-SkillName -Path $sourceSkill -ExpectedName "frontend-visual-qa")) {
-            throw "Upstream frontend-visual-qa payload failed validation."
-        }
-
-        if (Test-Path -LiteralPath $target) {
-            $backup = Join-Path $skillsRoot ("frontend-visual-qa.bootstrap-backup-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
-            Move-Item -LiteralPath $target -Destination $backup
-            Write-Host "[BACKUP] $backup"
-        }
-
-        Copy-Item -Recurse -Force -LiteralPath $source -Destination $target
-
-        $commit = (& git -C $repo rev-parse HEAD).Trim()
-        @{
-            source = "https://github.com/daymade/claude-code-skills"
-            source_path = "frontend-visual-qa"
-            upstream_commit = $commit
-            installed_at_utc = (Get-Date).ToUniversalTime().ToString("o")
-        } |
-            ConvertTo-Json -Depth 4 |
-            Set-Content -LiteralPath (Join-Path $target ".frontend-production-qa-source.json") -Encoding UTF8
-
-        Write-Host "[OK] frontend-visual-qa installed"
-    }
-    finally {
-        if (Test-Path -LiteralPath $temp) {
-            Remove-Item -Recurse -Force -LiteralPath $temp -ErrorAction SilentlyContinue
-        }
-    }
+if (Test-SkillName -Path $bundledVisualQa -ExpectedName "frontend-visual-qa") {
+    Write-Host "[OK] bundled frontend-visual-qa is present"
+    Write-Host "     $bundledVisualQa"
 }
 else {
-    Write-Host "[OK] frontend-visual-qa already valid"
+    throw "Bundled frontend-visual-qa is missing or invalid. Reinstall/update frontend-production-qa from its Git marketplace. Do not fetch a floating copy from daymade/claude-code-skills."
 }
 
 Write-Host ""
@@ -142,9 +101,16 @@ else {
 }
 
 Write-Host ""
-Write-Host "5. Local readiness"
+Write-Host "5. Motion AI Kit"
+Write-Host "[RECOMMENDED / CONDITIONAL] Motion is not installed by this bootstrap."
+Write-Host "Use the official interactive installer when motion work is expected:"
+Write-Host "  npx motion-ai@latest"
+Write-Host "The Motion specialist is not required for core frontend-production-qa readiness."
+
+Write-Host ""
+Write-Host "6. Local readiness"
 $check = Join-Path $PSScriptRoot "check-frontend-toolchain.ps1"
 & $check
 
 Write-Host ""
-Write-Host "Start a fresh Codex session after bootstrap so the skill list is reloaded."
+Write-Host "Start a fresh Codex session after plugin or skill changes so the skill list is reloaded."
