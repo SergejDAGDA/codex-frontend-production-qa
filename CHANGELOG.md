@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0 - 2026-09-26
+
+Conditional Motion specialist release.
+
+- Added the official Motion AI Kit `/motion` skill as a recommended conditional specialist for animation, gestures, layout motion, springs, and scroll-linked effects.
+- Added CSS-first routing so simple hover/focus/fade/loading effects do not automatically introduce a Motion runtime dependency.
+- Added reduced-motion, transient-state, settled-layout, and interaction verification requirements for motion-related changes.
+- Documented Motion installation and update through `npx motion-ai@latest` without bundling a second maintained copy into this repository.
+- Removed stale maintenance paths that still treated `frontend-visual-qa` as a floating dependency from `daymade/claude-code-skills`.
+- Kept the bundled Codex-adapted `frontend-visual-qa` as the version-consistent visual QA layer owned by this plugin.
+
 ## 1.2.0 - 2026-09-25
 
 Bundled visual QA consistency release.
