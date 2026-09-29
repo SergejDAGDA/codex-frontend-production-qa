@@ -182,7 +182,9 @@ skills/frontend-production-qa/assets/AGENTS.frontend.fragment.md
 
 Сам plugin обновляется через Git-backed marketplace.
 
-Скрипты внутри skill обслуживают только внешний specialist toolchain:
+Скрипты внутри skill обслуживают только внешний specialist toolchain.
+
+Bundled `frontend-visual-qa` обновляется вместе с самим frontend plugin. Скрипты не скачивают и не заменяют его из `daymade/claude-code-skills`.
 
 ```powershell
 .\scripts\check-frontend-toolchain.ps1

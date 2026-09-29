@@ -182,7 +182,9 @@ Project-specific architecture, legal constraints, design decisions and memory re
 
 The plugin itself is updated through the Git-backed marketplace.
 
-The maintenance scripts inside the skill are only for the external specialist toolchain:
+The maintenance scripts inside the skill are only for the external specialist toolchain.
+
+The bundled `frontend-visual-qa` skill is updated through the frontend plugin itself. The maintenance scripts do not download or replace it from `daymade/claude-code-skills`.
 
 ```powershell
 .\scripts\check-frontend-toolchain.ps1

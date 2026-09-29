@@ -10,10 +10,11 @@ function Get-SkillCandidates {
 
     $paths = New-Object System.Collections.Generic.List[string]
     $projectRoot = (Get-Location).Path
+    $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
 
     $direct = @(
-        (Join-Path $projectRoot ".agents\skills\$Name\SKILL.md"),
-        (Join-Path $HOME ".agents\skills\$Name\SKILL.md")
+        (Join-Path $projectRoot ".codex\skills\$Name\SKILL.md"),
+        (Join-Path $codexHome "skills\$Name\SKILL.md")
     )
 
     foreach ($path in $direct) {
@@ -22,7 +23,6 @@ function Get-SkillCandidates {
         }
     }
 
-    $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
     $cacheRoot = Join-Path $codexHome "plugins\cache"
 
     if (Test-Path -LiteralPath $cacheRoot) {
@@ -37,6 +37,16 @@ function Get-SkillCandidates {
                     $paths.Add($_.FullName)
                 }
             }
+    }
+
+    # Keep old manual installs as a last-resort compatibility fallback.
+    foreach ($path in @(
+        (Join-Path $projectRoot ".agents\skills\$Name\SKILL.md"),
+        (Join-Path $HOME ".agents\skills\$Name\SKILL.md")
+    )) {
+        if ((Test-Path -LiteralPath $path) -and -not $paths.Contains((Resolve-Path -LiteralPath $path).Path)) {
+            $paths.Add((Resolve-Path -LiteralPath $path).Path)
+        }
     }
 
     return @($paths)
