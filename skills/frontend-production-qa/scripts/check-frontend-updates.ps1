@@ -23,41 +23,15 @@ Write-Host "This operation may access upstream repositories but does not replace
 Write-Host ""
 
 $addy = Get-RemoteHead "https://github.com/addyosmani/agent-skills.git"
-$daymade = Get-RemoteHead "https://github.com/daymade/claude-code-skills.git"
-
 Write-Host "addyosmani/agent-skills"
 Write-Host "  upstream HEAD: $addy"
 Write-Host "  refresh command: codex plugin marketplace upgrade agent-skills"
 Write-Host ""
 
-$visualDir = Join-Path $HOME ".agents\skills\frontend-visual-qa"
-$metadata = Join-Path $visualDir ".frontend-production-qa-source.json"
-$installed = $null
-
-if (Test-Path -LiteralPath $metadata) {
-    try {
-        $installed = (Get-Content -LiteralPath $metadata -Raw | ConvertFrom-Json).upstream_commit
-    }
-    catch {
-        Write-Host "[WARN] installed frontend-visual-qa metadata could not be parsed"
-    }
-}
-
-Write-Host "daymade/claude-code-skills"
-Write-Host "  installed recorded commit: $installed"
-Write-Host "  upstream HEAD:             $daymade"
-
-if ($installed -and $daymade) {
-    if ($installed -eq $daymade) {
-        Write-Host "  status: CURRENT"
-    }
-    else {
-        Write-Host "  status: UPDATE AVAILABLE"
-    }
-}
-else {
-    Write-Host "  status: UNKNOWN"
-}
+Write-Host "frontend-production-qa"
+Write-Host "  frontend-visual-qa: bundled in this plugin"
+Write-Host "  refresh command:    codex plugin marketplace upgrade codex-frontend-production-qa"
+Write-Host "  source of truth:    https://github.com/SergejDAGDA/codex-frontend-production-qa"
 
 Write-Host ""
 Write-Host "Impeccable"

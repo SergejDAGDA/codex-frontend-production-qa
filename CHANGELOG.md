@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.1 - 2026-09-29
+
+Codex skill-path maintenance release.
+
+- Prefer `.codex/skills` and plugin cache locations during readiness checks.
+- Stop bootstrap and update scripts from downloading or replacing the bundled `frontend-visual-qa` skill.
+- Refresh the frontend plugin itself when updating the specialist toolchain.
+- Keep the legacy `.agents/skills` path only as a compatibility fallback.
+
 ## 1.2.0 - 2026-09-25
 
 Bundled visual QA consistency release.
