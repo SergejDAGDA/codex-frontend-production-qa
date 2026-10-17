@@ -55,18 +55,26 @@ A future update executor may be enabled only after isolated tests prove componen
 
 These commands are **read-only** and depend on structured native
 `codex plugin list --available --json` and `codex plugin marketplace list --json`
-evidence. They distinguish INSTALLED, DISABLED, MISSING, CONFLICT,
+evidence plus read-only inspection of the local Git origin and marketplace
+catalog. A matching marketplace **name alone is never ownership evidence**.
+They distinguish INSTALLED, DISABLED, MISSING, CONFLICT,
 MARKETPLACE_MISSING and UNKNOWN. Installed/enabled in an isolated CLI is
 not proof of current-session Desktop availability.
 
 When `MISSING` is supported by native inventory and known direct skill ID
-collisions are absent, the planner prints a `codex://plugins/install/...`
-link. The user must inspect the package owner, all bundled skill IDs,
+collisions are absent **and** the local Git origin, marketplace catalog and plugin
+source entry agree with the expected GitHub repository, the planner reports
+`MISSING` and the documented native action `/plugins`. There is **no** verified
+`codex://plugins/install/...` deep link. The user must inspect the package
+owner, all bundled skill IDs,
 permissions and the native install preview, then explicitly approve the
 installation **in Codex Desktop**. No PowerShell script performs the
 installation, updates a marketplace, or tries to roll back partial native
 installation.
 
+If marketplace origin/catalog/source cannot be verified, report UNKNOWN or
+CONFLICT and provide no install recommendation. A local Git origin can be
+changed and is not a signature; the native UI still requires user review.
 If the marketplace is missing, verify the canonical source and obtain
 separate permission before manually registering it. Re-run the planner
 after registration. UNKNOWN, DISABLED or CONFLICT are not installation
