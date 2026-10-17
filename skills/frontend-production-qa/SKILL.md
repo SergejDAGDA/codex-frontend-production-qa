@@ -90,6 +90,33 @@ Normal frontend work must not silently:
 
 Bootstrap and updates are explicit maintenance operations only.
 
+### Dependency installation and update handoff
+
+On a **requested installation** of this plugin, or if required specialist capabilities
+are missing, inspect `dependencies.yaml` and the installed skill/plugin inventory.
+Classify REQUIRED, BUNDLED, RECOMMENDED, OPTIONAL_UNMANAGED and REFERENCE-ONLY
+entries; a mention in a README is not an install instruction. Identify existing
+packages, duplicate `SKILL.md` IDs, source/owner and install channel. Offer one
+grouped plan for missing REQUIRED components and ask for the owner's approval
+before any install, MCP registration or hook change. Recommended/optional
+components require an explicit separate choice; no silent additions.
+
+On a **user-requested update check**, run the read-only checks, compare only
+verified installed package identities against upstream release/revision evidence,
+and report `CURRENT`, `DIFFERENT`, `MISSING`, `AMBIGUOUS` or `UNKNOWN`.
+A cache hit or a CLI process listing is not proof of activation in the current
+Codex Desktop session. Failed network access, indeterminate revisions and
+unpinned `@latest` runtimes are `UNKNOWN`, not `CURRENT` or `OUTDATED`.
+
+On an **approved update**, operate only on the exact selected owning package.
+Never fall back to an unnamed marketplace upgrade or update unrelated
+components. The plugin owns its bundled `frontend-visual-qa`; never overwrite
+it directly with `daymade` upstream. Require verified active-package identity,
+a tested component-specific rollback including activation/configuration, and
+post-update validation. If these gates are unavailable, report `BLOCKED` and
+give a bounded native maintenance plan instead of running an unsafe updater.
+The retrospective skill is a reviewer, not a dependency installer.
+
 ## Classify the change first
 
 ### Class A — layout/responsive/shared/release
