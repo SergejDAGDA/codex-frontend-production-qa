@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.2 - proposed (not published)
+## 1.2.2 - 2026-10-17
 
 Safety correction for frontend specialist-dependency management:
 
