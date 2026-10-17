@@ -188,6 +188,7 @@ The bundled `frontend-visual-qa` skill is updated through the frontend plugin it
 
 ```powershell
 .\scripts\check-frontend-toolchain.ps1
+.\scripts\plan-frontend-dependencies.ps1
 .\scripts\bootstrap-frontend-toolchain.ps1
 .\scripts\check-frontend-updates.ps1
 .\scripts\update-frontend-toolchain.ps1 -Component agent-skills
@@ -195,7 +196,7 @@ The bundled `frontend-visual-qa` skill is updated through the frontend plugin it
 
 Normal frontend work must not silently install or update third-party dependencies.
 
-Targeted update planning is read-only. The old broad `-Apply` updater is blocked until native per-component rollback and active-plugin selection are independently verified. Review [toolchain maintenance](skills/frontend-production-qa/references/toolchain-maintenance.md) before any installation or update. Duplicate skill IDs must be resolved by package owner; a cached file alone does not prove active-session loading.
+Guided installation planning is read-only and offers native Codex Desktop install links for proven missing packages; the user must approve there. The old bulk bootstrap no longer installs multiple dependencies. Targeted update planning is read-only. The old broad `-Apply` updater is blocked until native per-component rollback and active-plugin selection are independently verified. Review [toolchain maintenance](skills/frontend-production-qa/references/toolchain-maintenance.md) before any installation or update. Duplicate skill IDs must be resolved by package owner; a cached file alone does not prove active-session loading.
 
 See:
 
