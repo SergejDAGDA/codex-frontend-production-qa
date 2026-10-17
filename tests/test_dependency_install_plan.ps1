@@ -21,6 +21,23 @@ function Set-PluginInventory {
     param([string]$Text)
     Set-Content -LiteralPath $env:MOCK_PLUGIN_JSON -Value $Text -Encoding utf8
 }
+function Set-Markets {
+    param([object[]]$Items)
+    Set-Content -LiteralPath $env:MOCK_MARK_JSON -Value (ConvertTo-Json -InputObject @{ marketplaces = @($Items) } -Depth 6 -Compress) -Encoding utf8
+}
+function Make-Market {
+    param([string]$Folder, [string]$Origin, [string]$Name, [string]$Plugin, [object]$Source)
+    New-Item -ItemType Directory -Force -Path $Folder | Out-Null
+    & git init -q $Folder
+    if ($LASTEXITCODE -ne 0) { throw "Cannot make disposable Git marketplace" }
+    & git -C $Folder remote add origin $Origin
+    if ($LASTEXITCODE -ne 0) { throw "Cannot set disposable Git remote" }
+    $catalog = @{ name = $Name; plugins = @( @{ name = $Plugin; source = $Source } ) }
+    $catalogPath = Join-Path $Folder ".agents\plugins\marketplace.json"
+    New-Item -ItemType Directory -Force -Path (Split-Path $catalogPath) | Out-Null
+    Set-Content -LiteralPath $catalogPath -Value (ConvertTo-Json -InputObject $catalog -Depth 7) -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $Folder "plugin.json") -Value (ConvertTo-Json -InputObject @{ name = $Plugin; version = "0.6.13" }) -Encoding utf8
+}
 
 try {
     New-Item -ItemType Directory -Force -Path $fixture | Out-Null
@@ -35,7 +52,7 @@ try {
     $env:MOCK_CODEX_LOG = Join-Path $fixture "codex-calls.log"
     New-Item -ItemType Directory -Force -Path $env:HOME, $env:CODEX_HOME | Out-Null
 
-    # Mock every native CLI interaction; real Codex commands are never invoked.
+    # Mock CLI; only disposable local Git inspection is real.
     $mock = @'
 @echo off
 echo %*>>"%MOCK_CODEX_LOG%"
@@ -54,28 +71,69 @@ if "%1"=="plugin" (
 exit /b 9
 '@
     Set-Content -LiteralPath (Join-Path $fakeBin "codex.cmd") -Value $mock -Encoding ascii
-    Set-Content -LiteralPath $env:MOCK_MARK_JSON -Encoding utf8 -Value @'
-{"marketplaces":[{"name":"agent-skills","root":"C:\\fixture\\marketplace"},{"name":"codex-frontend-production-qa","root":"C:\\fixture\\frontend"}]}
-'@
+
+    $addyRoot = Join-Path $fixture "verified-addy"
+    Make-Market -Folder $addyRoot -Origin "https://github.com/addyosmani/agent-skills.git" -Name "agent-skills" -Plugin "agent-skills" -Source @{ source = "local"; path = "./" }
+    $frontRoot = Join-Path $fixture "verified-frontend"
+    Make-Market -Folder $frontRoot -Origin "https://github.com/SergejDAGDA/codex-frontend-production-qa.git" -Name "codex-frontend-production-qa" -Plugin "frontend-production-qa" -Source @{ source = "url"; url = "https://github.com/SergejDAGDA/codex-frontend-production-qa.git"; ref = "main" }
+    $markets = @(
+        @{ name = "agent-skills"; root = $addyRoot },
+        @{ name = "codex-frontend-production-qa"; root = $frontRoot }
+    )
+    Set-Markets -Items $markets
     Set-PluginInventory -Text @'
 {"installed":[],"available":[{"pluginId":"agent-skills@agent-skills","version":"0.6.13"},{"pluginId":"frontend-production-qa@codex-frontend-production-qa","version":"1.2.3"}]}
 '@
 
-    $missing = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
-    if ($missing.Code -ne 0) { throw "MISSING planner exit: $($missing.Code): $($missing.Output)" }
-    $row = $missing.Output | ConvertFrom-Json
-    if ($row.Status -ne "MISSING" -or $row.InstallLink -notmatch "^codex://plugins/install/agent-skills") {
-        throw "Expected safe MISSING state with native install link: $($missing.Output)"
+    foreach ($component in @("agent-skills", "frontend-production-qa")) {
+        $result = Invoke-Child -Script $planner -Arguments @("-Component", $component, "-Json")
+        if ($result.Code -ne 0) { throw "Verified $component runner failed: $($result.Output)" }
+        $row = $result.Output | ConvertFrom-Json
+        if ($row.Status -ne "MISSING" -or $row.LocalProvenance -ne "VERIFIED_LOCAL_ORIGIN" -or $row.NativeInstallAction -ne "/plugins" -or $row.PSObject.Properties.Name -contains "InstallLink") {
+            throw "Verified $component did not produce strictly native handoff: $($result.Output)"
+        }
     }
 
+    # Reproduces the exact review BLOCKER: same marketplace name, wrong owner root.
+    $wrongRoot = Join-Path $fixture "wrong-owner"
+    Make-Market -Folder $wrongRoot -Origin "https://github.com/untrusted/different-owner.git" -Name "agent-skills" -Plugin "agent-skills" -Source @{ source = "local"; path = "./" }
+    Set-Markets -Items @(@{ name = "agent-skills"; root = $wrongRoot })
+    $spoof = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
+    $row = $spoof.Output | ConvertFrom-Json
+    if ($spoof.Code -ne 0 -or $row.Status -ne "CONFLICT" -or $row.NativeInstallAction) {
+        throw "Wrong marketplace ownership produced an install recommendation: $($spoof.Output)"
+    }
+
+    # Correct owner Git remote, malicious catalog plugin source.
+    $badCatalog = Join-Path $frontRoot ".agents\plugins\marketplace.json"
+    Set-Content -LiteralPath $badCatalog -Encoding utf8 -Value @'
+{"name":"codex-frontend-production-qa","plugins":[{"name":"frontend-production-qa","source":{"source":"url","url":"https://github.com/untrusted/not-the-plugin.git","ref":"main"}}]}
+'@
+    Set-Markets -Items @(@{ name = "codex-frontend-production-qa"; root = $frontRoot })
+    $badSource = Invoke-Child -Script $planner -Arguments @("-Component", "frontend-production-qa", "-Json")
+    $row = $badSource.Output | ConvertFrom-Json
+    if ($badSource.Code -ne 0 -or $row.Status -ne "CONFLICT" -or $row.NativeInstallAction) {
+        throw "Wrong catalog plugin owner produced an install recommendation: $($badSource.Output)"
+    }
+    Make-Market -Folder $frontRoot -Origin "https://github.com/SergejDAGDA/codex-frontend-production-qa.git" -Name "codex-frontend-production-qa" -Plugin "frontend-production-qa" -Source @{ source = "url"; url = "https://github.com/SergejDAGDA/codex-frontend-production-qa.git"; ref = "main" }
+
+    Set-Markets -Items $markets
     Set-PluginInventory -Text @'
 {"installed":[{"pluginId":"agent-skills@agent-skills","version":"0.6.13","enabled":true}],"available":[]}
 '@
     $installed = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
-    if ($installed.Code -ne 0) { throw "Installed state runner exit: $($installed.Code)" }
     $row = $installed.Output | ConvertFrom-Json
-    if ($row.Status -ne "INSTALLED" -or $row.InstallLink) {
-        throw "Installed plugin must not receive installation link: $($installed.Output)"
+    if ($installed.Code -ne 0 -or $row.Status -ne "INSTALLED" -or $row.NativeInstallAction) {
+        throw "Installed package may not receive install action: $($installed.Output)"
+    }
+
+    Set-PluginInventory -Text @'
+{"installed":[{"pluginId":"agent-skills@agent-skills","version":"0.6.13","enabled":false}],"available":[]}
+'@
+    $disabled = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
+    $row = $disabled.Output | ConvertFrom-Json
+    if ($disabled.Code -ne 0 -or $row.Status -ne "DISABLED" -or $row.NativeInstallAction) {
+        throw "Disabled package may not receive install action"
     }
 
     Set-PluginInventory -Text @'
@@ -84,31 +142,37 @@ exit /b 9
     $direct = Join-Path $env:CODEX_HOME "skills\frontend-ui-engineering\SKILL.md"
     New-Item -ItemType Directory -Force -Path (Split-Path $direct) | Out-Null
     Set-Content -LiteralPath $direct -Value ("---" + [Environment]::NewLine + "name: frontend-ui-engineering" + [Environment]::NewLine + "---")
-    $conflict = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
-    if ($conflict.Code -ne 0) { throw "Collision runner exit: $($conflict.Code)" }
-    $row = $conflict.Output | ConvertFrom-Json
-    if ($row.Status -ne "CONFLICT" -or $row.InstallLink -or @($row.DirectIdCollisions).Count -lt 1) {
-        throw "Existing required skill ID must block install recommendation: $($conflict.Output)"
+    $collision = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
+    $row = $collision.Output | ConvertFrom-Json
+    if ($collision.Code -ne 0 -or $row.Status -ne "CONFLICT" -or $row.NativeInstallAction) {
+        throw "Direct skill ID collision did not stop native install recommendation"
+    }
+    Remove-Item -LiteralPath (Split-Path $direct) -Recurse -Force
+
+    Set-Markets -Items @()
+    $missingMarket = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
+    $row = $missingMarket.Output | ConvertFrom-Json
+    if ($missingMarket.Code -ne 0 -or $row.Status -ne "MARKETPLACE_MISSING" -or $row.NativeInstallAction) {
+        throw "Unregistered marketplace may not be recommended"
     }
 
-    Remove-Item -LiteralPath (Split-Path $direct) -Recurse -Force
+    Set-Markets -Items $markets
     Set-Content -LiteralPath $env:MOCK_PLUGIN_JSON -Value "NOT JSON" -Encoding ascii
     $unknown = Invoke-Child -Script $planner -Arguments @("-Component", "agent-skills", "-Json")
-    if ($unknown.Code -ne 0) { throw "Unknown evidence runner exit: $($unknown.Code)" }
     $row = $unknown.Output | ConvertFrom-Json
-    if ($row.Status -ne "UNKNOWN" -or $row.InstallLink) {
-        throw "Malformed CLI evidence must stay UNKNOWN: $($unknown.Output)"
+    if ($unknown.Code -ne 0 -or $row.Status -ne "UNKNOWN" -or $row.NativeInstallAction) {
+        throw "Malformed native inventory may not be recommended"
     }
 
     $unsafe = Invoke-Child -Script $bootstrap -Arguments @("-Apply")
     if ($unsafe.Code -eq 0 -or $unsafe.Output -notmatch "\[BLOCKED\]") {
-        throw "Legacy bootstrap mutation flag must be refused"
+        throw "Legacy bootstrap modification must be blocked"
     }
 
     foreach ($line in @(Get-Content -LiteralPath $env:MOCK_CODEX_LOG)) {
         if ($line -notmatch '^plugin list --available --json$' -and
             $line -notmatch '^plugin marketplace list --json$') {
-            throw "Planner issued unexpected Codex command: $line"
+            throw "Planner executed unexpected native Codex command: $line"
         }
     }
 }
@@ -124,5 +188,5 @@ finally {
         Remove-Item -LiteralPath $fixture -Recurse -Force
     }
 }
-Write-Host "Guided dependency installation fixtures PASS."
+Write-Host "Guided dependency source validation fixtures PASS."
 exit 0
