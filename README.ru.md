@@ -190,10 +190,12 @@ Bundled `frontend-visual-qa` обновляется вместе с самим f
 .\scripts\check-frontend-toolchain.ps1
 .\scripts\bootstrap-frontend-toolchain.ps1
 .\scripts\check-frontend-updates.ps1
-.\scripts\update-frontend-toolchain.ps1 -Apply
+.\scripts\update-frontend-toolchain.ps1 -Component agent-skills
 ```
 
 Обычная frontend-задача не должна незаметно устанавливать или обновлять сторонние зависимости.
+
+Выбор компонента выполняется в режиме планирования без изменений. Прежний общий `-Apply` блокируется до проверки отката конкретного компонента и определения активной версии плагина. Перед установкой и обновлением читайте [регламент](skills/frontend-production-qa/references/toolchain-maintenance.md). Дублирующиеся ID навыков нужно разрешать по владельцу пакета; наличие файла в кэше не доказывает его загрузку в текущем Codex Desktop.
 
 Подробности:
 
