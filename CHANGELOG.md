@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.2 - proposed (not published)
+
+Safety correction for frontend specialist-dependency management:
+
+- Do not perform a broad `codex plugin marketplace upgrade` fallback.
+- Replace the old bulk `-Apply` updater with a component-selective read-only plan; applying remains blocked until a real native rollback and enabled-package identity are proven.
+- Surface duplicate `SKILL.md` IDs and divergent copies instead of silently using the first search-path candidate.
+- Distinguish cache evidence, upstream HEAD, active plugin status and desktop MCP runtime; label incomplete evidence UNKNOWN.
+- Clarify bundled-skill ownership and require consent for missing required dependencies. No existing installation, plugin cache or user configuration is changed by this release itself.
+
 ## 1.2.1 - 2026-09-29
 
 Codex skill-path maintenance release.

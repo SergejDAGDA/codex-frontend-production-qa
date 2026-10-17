@@ -1,132 +1,59 @@
 param(
+    [ValidateSet("agent-skills", "frontend-production-qa", "impeccable")]
+    [string]$Component,
+
     [switch]$Apply
 )
 
 $ErrorActionPreference = "Stop"
 
+Write-Host "Frontend Production QA - targeted dependency maintenance"
+Write-Host "========================================================"
+Write-Host "No broad or implicit marketplace upgrade is permitted."
+Write-Host ""
+
+if (-not $Component) {
+    throw "Specify exactly one -Component: agent-skills, frontend-production-qa, or impeccable. No changes made."
+}
+
+$plans = @{
+    "agent-skills" = @(
+        "Owner: addyosmani/agent-skills",
+        "Target: agent-skills plugin marketplace and its specialist-skill bundle",
+        "Native refresh: codex plugin marketplace upgrade agent-skills",
+        "Native materialization: codex plugin add agent-skills@agent-skills"
+    )
+    "frontend-production-qa" = @(
+        "Owner: SergejDAGDA/codex-frontend-production-qa",
+        "Target: frontend-production-qa plugin including bundled frontend-visual-qa",
+        "Native refresh: codex plugin marketplace upgrade codex-frontend-production-qa",
+        "Native materialization: codex plugin add frontend-production-qa@codex-frontend-production-qa"
+    )
+    "impeccable" = @(
+        "Owner: pbakaus/impeccable",
+        "Target: independent Impeccable CLI, skills and potentially hooks",
+        "Native update: npx impeccable update",
+        "Extra gate: explicitly review hook changes before trusting them"
+    )
+}
+
+Write-Host "Selected component: $Component"
+foreach ($item in $plans[$Component]) { Write-Host "  $item" }
+Write-Host ""
+Write-Host "Preconditions: identify the active installation and its exact provenance,"
+Write-Host "inspect duplicate skill IDs, verify available version and prove a rollback"
+Write-Host "that restores package activation/configuration as well as files."
+Write-Host "The current Codex marketplace/CLI rollback contract has not been"
+Write-Host "verified for this package. A cache directory copy alone is not proof."
+Write-Host ""
+
 if (-not $Apply) {
-    Write-Host "No changes made."
-    Write-Host "Run check-frontend-updates.ps1 first."
-    Write-Host "Use -Apply for explicit maintenance."
+    Write-Host "[PLAN ONLY] No changes made. Run the read-only readiness/update checks."
     exit 0
 }
 
-function Require-Command {
-    param([Parameter(Mandatory = $true)][string]$Name)
-    if ($null -eq (Get-Command $Name -ErrorAction SilentlyContinue)) {
-        throw "Required command '$Name' was not found."
-    }
-}
-
-function Test-SkillName {
-    param(
-        [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][string]$ExpectedName
-    )
-
-    if (-not (Test-Path -LiteralPath $Path)) { return $false }
-    $content = Get-Content -LiteralPath $Path -Raw
-    if ($content.Length -lt 16 -or -not $content.StartsWith("---")) { return $false }
-
-    $match = [regex]::Match(
-        $content,
-        "(?ms)\A---\s*.*?^\s*name\s*:\s*['`"]?(?<name>[^'`"\r\n#]+)"
-    )
-
-    return $match.Success -and $match.Groups["name"].Value.Trim() -eq $ExpectedName
-}
-
-function Get-TreeManifest {
-    param([Parameter(Mandatory = $true)][string]$Root)
-
-    $items = @{}
-    if (-not (Test-Path -LiteralPath $Root)) { return $items }
-
-    $resolved = (Resolve-Path -LiteralPath $Root).Path
-
-    Get-ChildItem -LiteralPath $Root -File -Recurse |
-        Where-Object { $_.Name -ne ".frontend-production-qa-source.json" } |
-        ForEach-Object {
-            $relative = $_.FullName.Substring($resolved.Length).TrimStart([char[]]@('\','/'))
-            $items[$relative] = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
-        }
-
-    return $items
-}
-
-function Show-TreeDiff {
-    param(
-        [Parameter(Mandatory = $true)][string]$Installed,
-        [Parameter(Mandatory = $true)][string]$Proposed
-    )
-
-    $old = Get-TreeManifest $Installed
-    $new = Get-TreeManifest $Proposed
-    $keys = @($old.Keys + $new.Keys | Sort-Object -Unique)
-
-    foreach ($key in $keys) {
-        if (-not $old.ContainsKey($key)) {
-            Write-Host "ADDED    $key"
-        }
-        elseif (-not $new.ContainsKey($key)) {
-            Write-Host "REMOVED  $key"
-        }
-        elseif ($old[$key] -ne $new[$key]) {
-            Write-Host "CHANGED  $key"
-        }
-    }
-}
-
-Require-Command "codex"
-Require-Command "git"
-Require-Command "npx"
-
-Write-Host "Frontend Production QA - explicit update"
-Write-Host "========================================"
-Write-Host ""
-
-Write-Host "1. addyosmani/agent-skills marketplace"
-& codex plugin marketplace upgrade agent-skills
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[WARN] marketplace-specific upgrade failed; trying all configured Git marketplaces"
-    & codex plugin marketplace upgrade
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[WARN] marketplace upgrade did not complete successfully"
-    }
-}
-else {
-    Write-Host "[OK] agent-skills marketplace refreshed"
-}
-
-Write-Host ""
-Write-Host "2. frontend-production-qa plugin"
-& codex plugin marketplace upgrade codex-frontend-production-qa
-if ($LASTEXITCODE -ne 0) {
-    throw "Unable to refresh the frontend-production-qa marketplace."
-}
-Write-Host "[OK] frontend-production-qa refreshed; bundled frontend-visual-qa updated with the plugin"
-
-Write-Host ""
-Write-Host "3. Impeccable"
-
-$globalImpeccable = Join-Path $HOME ".agents\skills\impeccable\SKILL.md"
-if (Test-Path -LiteralPath $globalImpeccable) {
-    & npx -y impeccable update
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[WARN] Impeccable update returned non-zero"
-    }
-    else {
-        Write-Host "[OK] Impeccable update completed"
-        Write-Host "[ACTION] Review /hooks if hook definitions changed."
-    }
-}
-else {
-    Write-Host "[OPTIONAL MISSING] Impeccable not updated"
-}
-
-Write-Host ""
-Write-Host "4. Readiness"
-& (Join-Path $PSScriptRoot "check-frontend-toolchain.ps1")
-
-Write-Host ""
-Write-Host "Start a fresh Codex session after plugin or skill changes."
+# Safety boundary: unlike the previous implementation this script cannot
+# upgrade ALL Git marketplaces, install a different plugin or update Impeccable
+# as a side effect. Automatic -Apply stays disabled until the native,
+# component-specific restore/activation contract has an executable fixture.
+throw "[BLOCKED] Selected update not applied: rollback and active-package identity are NOT VERIFIED. Use an individually authorized native maintenance workstream after proving these gates. No changes made."
