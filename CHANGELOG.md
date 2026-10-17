@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.3 - proposed (not published)
+
+Guided installation planning for required frontend specialist plugins:
+
+- Add read-only native Codex CLI inventory and documented `/plugins` handoff only after verified local marketplace Git-origin and catalog source checks; fail closed on unverified ownership.
+- Detect known direct skill ID collisions and preserve UNKNOWN / CONFLICT refusal.
+- Replace legacy multi-component bootstrap mutations with a read-only plan.
+- Keep installed-plugin updates and automatic rollback blocked following the native rollback lab's NOT YET SAFE result.
+- Preserve all existing plugin IDs, managed bundle ownership, and separate approval for Chrome DevTools MCP / Impeccable.
+
+
 ## 1.2.2 - 2026-10-17
 
 Safety correction for frontend specialist-dependency management:

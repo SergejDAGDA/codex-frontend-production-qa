@@ -94,6 +94,10 @@ Bootstrap and updates are explicit maintenance operations only.
 
 On a **requested installation** of this plugin, or if required specialist capabilities
 are missing, inspect `dependencies.yaml` and the installed skill/plugin inventory.
+Use `scripts/plan-frontend-dependencies.ps1` for an initial read-only native CLI
+inventory, local marketplace Git-origin/catalog verification and native
+`/plugins` handoff; treat UNKNOWN and CONFLICT as stop conditions. Do not
+construct undocumented deep links or trust the marketplace name alone. Do not execute the legacy multi-component bootstrap actions.
 Classify REQUIRED, BUNDLED, RECOMMENDED, OPTIONAL_UNMANAGED and REFERENCE-ONLY
 entries; a mention in a README is not an install instruction. Identify existing
 packages, duplicate `SKILL.md` IDs, source/owner and install channel. Offer one

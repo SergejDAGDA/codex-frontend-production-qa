@@ -44,6 +44,22 @@ Use one explicit approval for the known missing REQUIRED set. RECOMMENDED
 and OPTIONAL components are opt-in. Do not automatically update or replace
 an independently maintained bundle when its upstream repository changes.
 
+## Guided installation boundary
+
+Run `scripts/plan-frontend-dependencies.ps1` to inspect native Codex
+plugin inventory. The planner does not add, remove, or update anything.
+It reports `/plugins` as the supported manual handoff **only** when native
+inventory reports a missing plugin, the local marketplace Git origin and
+catalog plugin source match the expected repository, and no direct collision
+is discovered for the known required skill IDs. A matching marketplace name
+alone is insufficient. Custom `codex://` install deep links are unsupported. The user reviews the native install preview and authorizes the
+selected package in Codex Desktop; a script may not impersonate that approval.
+
+If evidence is UNKNOWN, a marketplace is unregistered, a plugin is disabled,
+or an ID collision is present, stop and investigate. Native Codex installs
+do not provide a proven atomic rollback for arbitrary partial failures.
+Do not claim that this planner universally resolves every bundled skill ID.
+
 ## Required external specialist stack
 
 ### addyosmani/agent-skills
