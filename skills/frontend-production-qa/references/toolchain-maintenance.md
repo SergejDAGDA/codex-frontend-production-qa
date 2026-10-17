@@ -45,13 +45,52 @@ All three commands are read-only. The former broad `-Apply` operation is **block
 
 A future update executor may be enabled only after isolated tests prove component-level selection, rollback of package **and** activation/configuration, duplicate/refusal behavior, hooks trust and post-update validation. Native component commands are not automatically rollback-safe.
 
+## Guided first-time installation of required plugin packages
+
+```powershell
+.\scripts\plan-frontend-dependencies.ps1
+.\scripts\plan-frontend-dependencies.ps1 -Component agent-skills -Json
+.\scripts\bootstrap-frontend-toolchain.ps1
+```
+
+These commands are **read-only** and depend on structured native
+`codex plugin list --available --json` and `codex plugin marketplace list --json`
+evidence. They distinguish INSTALLED, DISABLED, MISSING, CONFLICT,
+MARKETPLACE_MISSING and UNKNOWN. Installed/enabled in an isolated CLI is
+not proof of current-session Desktop availability.
+
+When `MISSING` is supported by native inventory and known direct skill ID
+collisions are absent, the planner prints a `codex://plugins/install/...`
+link. The user must inspect the package owner, all bundled skill IDs,
+permissions and the native install preview, then explicitly approve the
+installation **in Codex Desktop**. No PowerShell script performs the
+installation, updates a marketplace, or tries to roll back partial native
+installation.
+
+If the marketplace is missing, verify the canonical source and obtain
+separate permission before manually registering it. Re-run the planner
+after registration. UNKNOWN, DISABLED or CONFLICT are not installation
+approval. The planner checks known required IDs; it does not guarantee
+that a provider bundle contains no other conflicting IDs.
+
+After a native installation, verify exact package identity, enabled state,
+materialized files and reloaded Desktop session. Handle a failed/partial
+native installation as an explicit recovery task, not an automatic retry.
+
+**Lab evidence (Codex CLI 0.163.0-alpha.10.2, 2026-10-17):**
+native named marketplace refresh can immediately materialize an installed
+plugin, prune its old cached version, and has no transactional rollback.
+A post-materialization synthetic rollback worked, but the refresh-only
+failure boundary could not be exercised. Therefore automatic updates
+remain blocked. Do not claim a tested restore for production installations.
+
 ## First-time external toolchain bootstrap
 
 ```powershell
 .\scripts\bootstrap-frontend-toolchain.ps1
 ```
 
-**This existing bootstrap script mutates the environment.** Do not run it as a presence check or merely because the plugin was installed. The agent must first inventory required capabilities and duplicates, show one grouped plan (including MCP changes and the optional Impeccable choice), and obtain explicit approval for its entire effects. If the CLI and active Desktop configuration disagree, pause and reconcile instead of blindly installing again.
+The bootstrap command is now **read-only** and delegates to the guided planner. Its former bulk mutation and optional `-InstallImpeccable` path are blocked. Chrome DevTools MCP and Impeccable remain separate, permission-gated decisions. If isolated CLI and active Desktop configurations disagree, reconcile them before any native installation.
 
 ## Safety
 
