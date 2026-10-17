@@ -55,37 +55,57 @@ function Get-SkillCandidates {
 function Test-SkillPayload {
     param([Parameter(Mandatory = $true)][string]$Name)
 
-    $candidates = @(Get-SkillCandidates -Name $Name)
-
-    foreach ($path in $candidates) {
+    $records = @()
+    foreach ($path in @(Get-SkillCandidates -Name $Name)) {
         try {
             $content = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
-            if ($content.Length -lt 16) { continue }
-            if (-not $content.StartsWith("---")) { continue }
-
+            if ($content.Length -lt 16 -or -not $content.StartsWith("---")) { continue }
             $match = [regex]::Match(
                 $content,
-                "(?ms)\A---\s*.*?^\s*name\s*:\s*['`"]?(?<name>[^'`"\r\n#]+)"
+                "(?ms)\A---\s*.*?^\s*name\s*:\s*['\x22]?(?<name>[^'\x22\r\n#]+)"
             )
-
             if (-not $match.Success) { continue }
-
             $declared = $match.Groups["name"].Value.Trim()
-            if ($declared -ne $Name) { continue }
-
-            $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-            Write-Host "[VALID] $Name"
-            Write-Host "        path: $path"
-            Write-Host "        sha256: $hash"
-            return $true
+            if ($declared -ne $Name) {
+                Write-Host "[ALIAS/MISMATCH] directory: $Name; frontmatter: $declared; path: $path"
+                continue
+            }
+            $origin = "DIRECT_OR_LEGACY"
+            if ($path -match '[\\/]plugins[\\/]cache[\\/]') {
+                $origin = "PLUGIN_CACHE (may be inactive or historical)"
+            }
+            $records += [pscustomobject]@{
+                Path = $path
+                Hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+                Origin = $origin
+            }
         }
         catch {
-            Write-Host "[WARN] Could not validate $path"
+            Write-Host "[UNKNOWN] Could not inspect $path"
         }
     }
 
-    Write-Host "[MISSING] no valid $Name payload found"
-    return $false
+    if ($records.Count -eq 0) {
+        Write-Host "[MISSING/UNKNOWN] No readable valid $Name payload found"
+        return $false
+    }
+    foreach ($item in @($records | Sort-Object Path)) {
+        Write-Host "[FOUND] $Name ($($item.Origin))"
+        Write-Host "        path: $($item.Path)"
+        Write-Host "        sha256: $($item.Hash)"
+    }
+    if ($records.Count -gt 1) {
+        $distinctHashes = @($records | Select-Object -ExpandProperty Hash -Unique)
+        if ($distinctHashes.Count -gt 1) {
+            Write-Host "[AMBIGUOUS] $Name has multiple differing valid payloads."
+            Write-Host "            Do not update until the active owner is established."
+            return $false
+        }
+        Write-Host "[DUPLICATE] $Name has identical payloads at multiple paths."
+        Write-Host "            Only the plugin owner may update a bundled skill."
+    }
+    Write-Host "[PRESENT] $Name; this scan does NOT prove active-session loading."
+    return $true
 }
 
 Write-Host "Frontend Production QA - local readiness"
@@ -142,13 +162,12 @@ if (Test-CommandAvailable "codex") {
             Write-Host "             Registration does not prove MCP startup or Chrome connectivity."
         }
         else {
-            Write-Host "[MISSING] chrome-devtools MCP registration"
-            $runtimeReady = $false
+            Write-Host "[UNKNOWN] chrome-devtools absent from this CLI result."
+            Write-Host "          Isolated CLI may not share active Desktop MCP configuration."
         }
     }
     catch {
-        Write-Host "[ERROR] unable to inspect MCP registrations"
-        $runtimeReady = $false
+        Write-Host "[UNKNOWN] unable to inspect MCP registrations from this CLI."
     }
 }
 
@@ -156,7 +175,7 @@ Write-Host ""
 Write-Host "Readiness summary"
 Write-Host "-----------------"
 Write-Host ("FRONTEND TOOLCHAIN FILES: " + $(if ($runtimeReady) { "READY" } else { "NOT READY" }))
-Write-Host ("BROWSER MCP CONFIG: " + $(if ($mcpRegistered) { "REGISTERED" } else { "NOT READY" }))
+Write-Host ("BROWSER MCP CLI: " + $(if ($mcpRegistered) { "REGISTERED (CLI ONLY)" } else { "UNKNOWN; inspect Desktop configuration/runtime" }))
 Write-Host "CURRENT CODEX SESSION LOAD: NOT VERIFIED BY THIS SCRIPT"
 Write-Host "BROWSER PROCESS/CONNECTION: VERIFY DURING THE FRONTEND TASK"
 Write-Host ("TOOLCHAIN MAINTENANCE: " + $(if ($maintenanceReady) { "READY" } else { "NOT READY" }))
