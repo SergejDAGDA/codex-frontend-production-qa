@@ -20,6 +20,30 @@ Use Inspo for new UI, new components, redesigns, visual-direction exploration, o
 
 Do not use inspiration results as authority over an existing project's approved visual language.
 
+## Dependency classes and source ownership
+
+`dependencies.yaml` declares required, bundled, recommended and optional
+integrations, but is **not** a package lockfile or native dependency resolver.
+Use the owning plugin/skill identifier (not just a directory or repository
+name) to select a source. A **REFERENCE-ONLY** upstream is never an automatic
+installation candidate.
+
+Before installing missing required components, first inspect all discovered
+paths and enabled-owner evidence. If duplicates share a `SKILL.md` ID, display
+each path/source/hash; do not silently select a directory by traversal order.
+Old plugin cache versions may remain on disk without being enabled. A
+directory/header mismatch (for example `taste-skill` versus declared
+`design-taste-frontend`) is an alias requiring explicit resolution.
+
+For upgrades, distinguish package cache version, source commit, enabled
+plugin registration and current Desktop session load. No single one of those
+proves all the others. Host MCP configuration, active MCP startup and browser
+connectivity likewise require separate evidence.
+
+Use one explicit approval for the known missing REQUIRED set. RECOMMENDED
+and OPTIONAL components are opt-in. Do not automatically update or replace
+an independently maintained bundle when its upstream repository changes.
+
 ## Required external specialist stack
 
 ### addyosmani/agent-skills
