@@ -115,7 +115,9 @@ exit /b 9
     if ($badSource.Code -ne 0 -or $row.Status -ne "CONFLICT" -or $row.NativeInstallAction) {
         throw "Wrong catalog plugin owner produced an install recommendation: $($badSource.Output)"
     }
-    Make-Market -Folder $frontRoot -Origin "https://github.com/SergejDAGDA/codex-frontend-production-qa.git" -Name "codex-frontend-production-qa" -Plugin "frontend-production-qa" -Source @{ source = "url"; url = "https://github.com/SergejDAGDA/codex-frontend-production-qa.git"; ref = "main" }
+    Set-Content -LiteralPath $badCatalog -Encoding utf8 -Value @'
+{"name":"codex-frontend-production-qa","plugins":[{"name":"frontend-production-qa","source":{"source":"url","url":"https://github.com/SergejDAGDA/codex-frontend-production-qa.git","ref":"main"}}]}
+'@
 
     Set-Markets -Items $markets
     Set-PluginInventory -Text @'
