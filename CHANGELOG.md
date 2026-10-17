@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.3 - proposed (not published)
+## 1.2.3 - 2026-10-17
 
 Guided installation planning for required frontend specialist plugins:
 
