@@ -5,7 +5,7 @@ $updater = Join-Path $base "update-frontend-toolchain.ps1"
 $readiness = Join-Path $base "check-frontend-toolchain.ps1"
 
 foreach ($component in @("agent-skills", "frontend-production-qa", "impeccable")) {
-    $plan = (& $updater -Component $component 2>&1 | Out-String)
+    $plan = (& $updater -Component $component 6>&1 2>&1 | Out-String)
     if ($plan -notmatch "\[PLAN ONLY\]") { throw "Missing plan for $component" }
     $blocked = $false
     try {
@@ -45,12 +45,12 @@ try {
     $header = "---" + [Environment]::NewLine + "name: frontend-visual-qa" + [Environment]::NewLine + "---"
     Set-Content -LiteralPath $direct -Value ($header + [Environment]::NewLine + "legacy")
     Set-Content -LiteralPath $plugin -Value ($header + [Environment]::NewLine + "bundled")
-    $output = (& $readiness 2>&1 | Out-String)
+    $output = (& $readiness 6>&1 2>&1 | Out-String)
     if ($output -notmatch "\[AMBIGUOUS\] frontend-visual-qa") {
         throw "Divergent duplicate-ID payloads were not reported"
     }
     Set-Content -LiteralPath $direct -Value ($header + [Environment]::NewLine + "bundled")
-    $output = (& $readiness 2>&1 | Out-String)
+    $output = (& $readiness 6>&1 2>&1 | Out-String)
     if ($output -notmatch "\[DUPLICATE\] frontend-visual-qa") {
         throw "Identical duplicate-ID payloads were not reported"
     }
