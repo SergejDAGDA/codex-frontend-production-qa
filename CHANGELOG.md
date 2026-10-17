@@ -4,7 +4,7 @@
 
 Guided installation planning for required frontend specialist plugins:
 
-- Add read-only native Codex CLI inventory and per-plugin install links for explicitly missing packages.
+- Add read-only native Codex CLI inventory and documented `/plugins` handoff only after verified local marketplace Git-origin and catalog source checks; fail closed on unverified ownership.
 - Detect known direct skill ID collisions and preserve UNKNOWN / CONFLICT refusal.
 - Replace legacy multi-component bootstrap mutations with a read-only plan.
 - Keep installed-plugin updates and automatic rollback blocked following the native rollback lab's NOT YET SAFE result.
